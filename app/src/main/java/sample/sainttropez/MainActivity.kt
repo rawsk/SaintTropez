@@ -1,9 +1,13 @@
 package sample.sainttropez
 
+import android.content.Intent
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -11,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        registerForContextMenu(imageView)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -42,5 +47,64 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menuInflater.inflate(R.menu.context, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem?): Boolean {
+        when(item?.itemId) {
+            R.id.sms -> {
+                val number = "999-9999-9999"
+                val uri = Uri.parse("sms:$number")
+                var intent = Intent(Intent.ACTION_VIEW)
+                intent.data = uri
+                intent.putExtra("sms_body", "Hello")
+                startActivity(intent)
+                return true
+            }
+            R.id.mail -> {
+                val email: String = "hoge@example.com"
+                val subject: String = "問い合わせ"
+                val text: String = "予約希望いたします。"
+                val uri = Uri.parse("mailto:")
+                val intent = Intent(Intent.ACTION_SENDTO)
+                intent.apply {
+                    data = uri
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                    putExtra(Intent.EXTRA_SUBJECT, subject)
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivity(intent)
+                }
+                return true
+            }
+            R.id.share -> {
+                val text: String = "レストランを紹介"
+                val intent = Intent(Intent.ACTION_SEND)
+                intent.apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }
+                val chooser = Intent.createChooser(intent, null)
+                if (chooser.resolveActivity(packageManager) != null) {
+                    startActivity(chooser)
+                }
+                return true
+            }
+            R.id.browse -> {
+                val url: String = "https://www.yahoo.co.jp"
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse(url)
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivity(intent)
+                }
+                return true
+            }
+        }
+        return super.onContextItemSelected(item)
     }
 }
